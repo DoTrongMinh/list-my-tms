@@ -1,3 +1,4 @@
+-------------------------user_mailer.rb-----------------------------------------
 class UserMailer < ApplicationMailer
     default from: ENV['GMAIL_USERNAME']
 
@@ -9,4 +10,74 @@ class UserMailer < ApplicationMailer
             "dominh130802@gmail.com"], 
         subject: "Webcome to Our Platform!")
      end
+end
+
+----------------------schedule.yml------------------------------------------
+// tạo thời gian cho email
+welcome_email_worker:
+cron: "*****"
+class: "WebcomeEmailWorker"
+queue: default
+
+---------------------mailer.html.erb vs welcome_email.html.erb------------------------------------------------------
+và sẽ có mailer.html.erb để có thể tạo ra giao diện mail
+
+
+---------------welcome_email_worker.rb------------------------------
+chưa hiểu cái này
+class WelcomeEmailWorker
+    include Sidekiq::Worker
+
+    # def initalize
+    #     puts "##############"
+    #     puts "WelcomeEmailWorker"
+    #     puts "##############"
+    # end
+
+    def perform 
+        # UserMailer.welcome_email(User.first).deliver_now
+        puts "########"
+        puts "Run"
+        puts "#####"
+    end 
+end 
+
+
+---------------sideliq.yml------------------------------
+chưa hiểu cái này
+:verbose: false
+development:
+:concurrency: 20
+staging:
+:concurrency: 20
+production:
+:concurrency: 20
+:queues:
+- [high_priority, 5]
+- [default, 3]
+- [send-website, 3]
+- [low_priority,2]
+- [heavy_tasks, 1]
+- [mailers, 1]
+
+
+
+-----------------sidekiq.rb----------------------------------
+Sidekiq.configure_server do |config|
+    config.redis = { url: ENV['REDIS_URL']}
+end
+Sidekiq.configure_client do |config|
+    config.redis = { url: ENV['REDIS_URL' ]}
+end
+
+schedule_file = 'config/schedule.yml'
+Sidekiq::Cron::Job.load_from_hash YAML.load_file(schedule_file) if File.exist?(schedule_file)
+
+
+
+
+---------------application_mailer.rb--------------------------------
+class ApplicationMailer < ActionMailer::Base
+  default from: "from@example.com"
+  layout "mailer"
 end
